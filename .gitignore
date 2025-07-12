@@ -8,6 +8,7 @@ venv/
 env/
 ENV/
 .venv/
+simpy/
 
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
