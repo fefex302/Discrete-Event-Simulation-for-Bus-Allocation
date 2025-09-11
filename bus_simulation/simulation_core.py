@@ -61,7 +61,7 @@ def participant_generator(env, passenger_queue, history, tempo_massimo_simulazio
 #     print(f'{env.now:.2f}: passenger {passenger.name} has boarded {bus_destination.name}.')
 #     # The client's action ends here for this simulation, but could include the journey and disembarkation
 
-def bus_process(env, bus_obj, bus_attivi_per_imbarco, passenger_queue, SMART_DRIVER, SMART_TIME, SMART_PERCENTAGE, TRAVEL_TIME, HYBRID = False, HYBRID_TIME=125, verbose = False, TIME_FROM_LAST_BOARDING=2):
+def bus_process(env, bus_obj, bus_attivi_per_imbarco, passenger_queue, SMART_DRIVER, SMART_TIME, SMART_PERCENTAGE, TRAVEL_TIME_MEAN, TRAVEL_TIME_STD, HYBRID = False, HYBRID_TIME=125, verbose = False, TIME_FROM_LAST_BOARDING=2):
     # Bus cycle
     smart_driver = SMART_DRIVER  # Local copy of SMART_DRIVER to allow dynamic changes
     while True:
@@ -85,7 +85,11 @@ def bus_process(env, bus_obj, bus_attivi_per_imbarco, passenger_queue, SMART_DRI
 
         # # The bus will board passengers until it is full or the SMART_DRIVER conditions are met
         while bus_obj.passengers_on_board < bus_obj.capacity and (not smart_driver or (env.now - time_idle <= SMART_TIME and bus_obj.passengers_on_board <= bus_obj.capacity * SMART_PERCENTAGE)
-                                                                                     or (env.now - time_idle <= SMART_TIME and time_from_last_boarding < TIME_FROM_LAST_BOARDING)):
+                                                                                     or (env.now - time_idle <= SMART_TIME and time_from_last_boarding < TIME_FROM_LAST_BOARDING)
+                                                                                     ):        
+        # while bus_obj.passengers_on_board < bus_obj.capacity and (not smart_driver or (env.now - time_idle <= SMART_TIME and bus_obj.passengers_on_board <= bus_obj.capacity * SMART_PERCENTAGE)
+        #                                                                              or (env.now - time_idle <= SMART_TIME and time_from_last_boarding < TIME_FROM_LAST_BOARDING)
+        #                                                                              or (bus_obj.passengers_on_board <= bus_obj.capacity * SMART_PERCENTAGE <= SMART_TIME and time_from_last_boarding < TIME_FROM_LAST_BOARDING)):
         # while bus_obj.passengers_on_board < bus_obj.capacity and (not smart_driver or (env.now - time_idle <= SMART_TIME
         #                                                                                        and bus_obj.passengers_on_board <= bus_obj.capacity * SMART_PERCENTAGE
         #                                                                                        and time_from_last_boarding < TIME_FROM_LAST_BOARDING)):
@@ -119,7 +123,8 @@ def bus_process(env, bus_obj, bus_attivi_per_imbarco, passenger_queue, SMART_DRI
 
         # Simulate the journey
         bus_obj.traveling = True
-        yield env.timeout(TRAVEL_TIME)
+        travel_time = max(0, random.gauss(TRAVEL_TIME_MEAN, TRAVEL_TIME_STD))
+        yield env.timeout(travel_time)
         bus_obj.traveling = False
 
         if verbose:
